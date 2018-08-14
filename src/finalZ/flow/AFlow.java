@@ -1,39 +1,45 @@
 package finalZ.flow;
 
+import java.util.ArrayList;
+
 import finalZ.module.Module;
 import finalZ.tree.ModuleTree;
 import finalZ.tree.TreeNode;
 
 public abstract class AFlow {
 	
+	public static final int k_iFOWRWARD = 0;
+	public static final int k_iBRANCH = 1;
+	public static final int k_iJUMP = 2;
+	
 	protected ModuleTree m_moduleTree;
 	
 	public AFlow()
 	{
-		m_moduleTree = null;
-	}
-
-	public AFlow AddModule(Module module)
-	{
-		if (m_moduleTree == null)
+		try
 		{
-			m_moduleTree = new ModuleTree(new TreeNode(module, null));
+			Build();
+			System.out.println(m_moduleTree);
 		}
-		m_moduleTree.AddNode(module);
-		return this;
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 	
-	public AFlow AddBranchModule(Module module)
+	public ModuleTree NewTree(Module module)
 	{
-		m_moduleTree.AddBranch(module);
-		return this;
+		m_moduleTree = new ModuleTree(new TreeNode("1", module, null));
+		
+		return m_moduleTree;
 	}
 	
-	public void Excecute() throws Exception
+	public ArrayList<TraceInfo> Excecute() throws Exception
 	{
-		m_moduleTree.GoRoot();
-		m_moduleTree.m_curNode.Execute();
+		ArrayList<TraceInfo> tracePath = new ArrayList<>();
+		m_moduleTree.Execute(tracePath);
+		return tracePath;
 	}
 	
-	public abstract ModuleTree Build();
+	public abstract ModuleTree Build() throws Exception;
 }

@@ -18,6 +18,11 @@ public class Scope
 		m_Vars = vars;
 	}
 	
+	boolean HasVar(String varName)
+	{
+		return m_Vars.containsKey(varName);
+	}
+	
 	Object GetVar(String varName) throws VarDoesNotExistException
 	{
 		if (!m_Vars.containsKey(varName)) throw new VarDoesNotExistException();

@@ -1,9 +1,11 @@
 package finalZ;
 
+import java.util.ArrayList;
 import java.util.Stack;
 
 import finalZ.exceptions.VarDoesNotExistException;
 import finalZ.flow.AFlow;
+import finalZ.flow.TraceInfo;
 
 public class ModuleEnv {
 	
@@ -19,14 +21,27 @@ public class ModuleEnv {
 	
 	public Object getVar(String varName) throws VarDoesNotExistException
 	{
-		Scope curScope = m_Scopes.get(0);
-		return curScope.GetVar(varName);
+		Scope scope = null;
+		for (int i = m_Scopes.size() - 1; i >= 0; i--)
+		{
+			scope = m_Scopes.elementAt(i);
+			if (scope.HasVar(varName)) break;
+		}
+		if (scope == null) throw new VarDoesNotExistException();
+		
+		return scope.GetVar(varName);
 	}
 	
-	public void setVar(String varName, Object value)
+	public void setVar(String varName, Object value) throws VarDoesNotExistException
 	{
-		Scope curScope = m_Scopes.get(0);
-		curScope.SetVar(varName, value);
+		Scope scope = null;
+		for (int i = m_Scopes.size() - 1; i >= 0; i--)
+		{
+			scope = m_Scopes.elementAt(i);
+			if (scope.HasVar(varName)) break;
+		}
+		if (scope == null) throw new VarDoesNotExistException();
+		scope.SetVar(varName, value);
 	}
 	
 	private void EnterScope()
@@ -41,10 +56,10 @@ public class ModuleEnv {
 	
 	public void ExecuteFlow(AFlow flow) throws Exception
 	{
-		flow.Build();
-		
 		EnterScope();
-		flow.Excecute();
+		ArrayList<TraceInfo> tracePath = flow.Excecute();
+		for (int i = 0; i < tracePath.size(); i++)
+			System.out.println(tracePath.get(i));
 		ExitScope();
 	}
 }
