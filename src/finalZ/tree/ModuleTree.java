@@ -2,19 +2,38 @@ package finalZ.tree;
 
 import java.util.ArrayList;
 
+import finalZ.FlowEnv;
 import finalZ.exceptions.ChildNodeAlreadyExistsException;
-import finalZ.flow.TraceInfo;
-import finalZ.module.Module;
+import finalZ.exceptions.ExecuteException;
+import finalZ.module.AModule;
+import finalZ.trace.TraceInfo;
+import finalZ.utils.Utils;
 
 public class ModuleTree {
 	
+	private ModuleForest m_Forest;
 	private TreeNode m_Root;
 	private TreeNode m_curNode;
+	private int m_iId;
+	private String m_stName;
 	
-	public ModuleTree(TreeNode root)
+	public ModuleTree(ModuleForest forest, String name, int id, TreeNode root)
 	{
+		m_Forest = forest;
+		m_stName = name;
+		m_iId = id;
 		m_Root = root;
 		m_curNode = root;
+	}
+	
+	public String GetName()
+	{
+		return m_stName;
+	}
+	
+	public int GetId()
+	{
+		return m_iId;
 	}
 	
 	public TreeNode GetRoot()
@@ -27,36 +46,34 @@ public class ModuleTree {
 		return m_curNode;
 	}
 	
-	public ModuleTree AddNode(Module module) throws ChildNodeAlreadyExistsException
+	public ModuleForest EndTree()
 	{
-		if (m_curNode.m_fwNode == null)
+		return m_Forest;
+	}
+	
+	public ModuleTree AddNode(int port, AModule module) throws ChildNodeAlreadyExistsException
+	{
+		if (!m_curNode.m_Childs.containsKey(port))
 		{
-			String curId = m_curNode.GetId();
-			int id = Integer.parseInt(curId.substring(curId.lastIndexOf(".") + 1));
-			String newId = "";
-			if (curId.contains("."))
-				newId = curId.substring(0, curId.lastIndexOf(".") + 1) + (id + 1);	
-			else
-				newId = (id + 1) + "";
-				
-			m_curNode.m_fwNode = new TreeNode(newId, module, m_curNode);
-			m_curNode = m_curNode.m_fwNode;
+			m_curNode.m_Childs.put(port, new TreeNode(m_curNode.GetId() + "." + (port + 1), module, m_curNode));
+			m_curNode = m_curNode.m_Childs.get(port);
 		}
 		else
-			throw new ChildNodeAlreadyExistsException();
+			throw new ChildNodeAlreadyExistsException(m_curNode, port);
 		
 		return this;
 	}
 	
-	public ModuleTree AddBranch(Module module)
+	public ModuleTree AddJumpNode(int port, String des) throws ChildNodeAlreadyExistsException
 	{
-		if (m_curNode.m_branchNode == null)
+		if (!m_curNode.m_Childs.containsKey(port))
 		{
-			String curId = m_curNode.GetId();
-			String newId = curId + ".1";
-			m_curNode.m_branchNode = new TreeNode(newId, module, m_curNode);
-			m_curNode = m_curNode.m_branchNode;
+			m_curNode.m_Childs.put(port, new JumpNode(m_curNode.GetId() + "." + port, null, m_curNode, des));
+			m_curNode = m_curNode.m_Childs.get(port);
 		}
+		else
+			throw new ChildNodeAlreadyExistsException(m_curNode, port);
+		EndBranch();
 		return this;
 	}
 	
@@ -64,62 +81,73 @@ public class ModuleTree {
 	{
 		if (m_curNode == m_Root) return this;
 		m_curNode = m_curNode.m_Parent;
-		while (m_curNode.m_fwNode != null && m_curNode != m_Root)
-			m_curNode = m_curNode.m_Parent;
 		return this;
 	}
 	
-	public TreeNode GoNextNode()
+	public TreeNode GoToChild(int port)
 	{
-		m_curNode = m_curNode.m_fwNode;
-		return m_curNode;
-	}
-	
-	public TreeNode GoBranchNode()
-	{
-		m_curNode = m_curNode.m_branchNode;
+		m_curNode = m_curNode.m_Childs.get(port);
 		return m_curNode;
 	}
 	
 	public TreeNode GoBack()
 	{
+		if (m_curNode == m_Root) return m_curNode;
 		m_curNode = m_curNode.m_Parent;
 		return m_curNode;
 	}
 	
-	public TreeNode GoRoot()
+	public TreeNode GoToRoot()
 	{
 		m_curNode = m_Root;
 		return m_curNode;
 	}
 	
-	public void Execute(ArrayList<TraceInfo> tracePath) throws Exception
+	public TreeNode FindNode(String id)
 	{
-		GoRoot().Execute(tracePath);
+		return m_Root.Find(id);
+	}
+	
+	public void Execute(FlowEnv env, ArrayList<String> tracePath) throws ExecuteException
+	{
+		GoToRoot().Execute(env, tracePath);
 	}
 	
 	public String toString()
 	{
 		StringBuilder s = new StringBuilder();
-		m_Root.Print(s, 0, false);
+		s.append("|=[root]=" + m_stName + " (id=" + m_iId + ")\n");
+		int indexFlag = 0;
+		ArrayList<String> space = new ArrayList<>();
+		m_Root.Print(s, null, -1, true, indexFlag, space);
+		return s.toString();
+	}
+	
+	public String PrintTrace(ArrayList<String> tracePath)
+	{
+		StringBuilder s = new StringBuilder();
+		int indexFlag = 0;
+		ArrayList<String> space = new ArrayList<>();
+		System.out.println("Trace path: " + tracePath);
+		m_Root.PrintTrace(s, null, -1, true, indexFlag, space, tracePath);
 		return s.toString();
 	}
 	
 	/*
 	 * 
-	 * 			LoadUserData
-	 * 			:..Error
-	 * 			|	:__DeleteUser
-	 * 			|	:
-	 * 			|	NewUser
-	 * 			|
-	 * 			Verify
-	 * 			|__Error
-	 * 			|
-	 * 			SummerEvent
-	 * 			|__Error
-	 * 			|
-	 * 			Success
+	 * 			LoadUserData A0[fw]
+	 * 			:__Error
+	 * 			:	|__DeleteUser
+	 * 			:	|
+	 * 			:	NewUser
+	 * 			:
+	 * 			Verify A1[br] A3[<< 2.1 | br] A5[<< 2.1 | fw]
+	 * 			:..Error A2[>> 2] A4[>> 2]
+	 * 			:
+	 * 			SummerEvent A6[fw]
+	 * 			:__Error
+	 * 			:
+	 * 			Success A7[end]
 	 */
 	
 
