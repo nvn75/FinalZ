@@ -2,10 +2,12 @@ package finalZ.tree;
 
 import java.util.ArrayList;
 
+import finalZ.FinalZ;
 import finalZ.FlowEnv;
 import finalZ.exceptions.ChildNodeAlreadyExistsException;
 import finalZ.exceptions.ExecuteException;
 import finalZ.module.AModule;
+import finalZ.module.ModuleInfo;
 import finalZ.trace.TraceInfo;
 import finalZ.utils.Utils;
 
@@ -51,17 +53,30 @@ public class ModuleTree {
 		return m_Forest;
 	}
 	
-	public ModuleTree AddNode(int port, AModule module) throws ChildNodeAlreadyExistsException
+	public ModuleTree AddNode(String portName, String moduleName) throws Exception
+	{
+		ModuleInfo moduleInfo = FinalZ.Instance().getModuleInfo(moduleName);
+		int portId = m_curNode.GetPortId(portName);
+		return AddNode(portId, moduleInfo);
+	}
+
+	public ModuleTree AddNode(int port, ModuleInfo moduleInfo) throws ChildNodeAlreadyExistsException
 	{
 		if (!m_curNode.m_Childs.containsKey(port))
 		{
-			m_curNode.m_Childs.put(port, new TreeNode(m_curNode.GetId() + "." + (port + 1), module, m_curNode));
+			m_curNode.m_Childs.put(port, new TreeNode(Utils.GenerateNodeId(moduleInfo.getName()), moduleInfo, m_curNode));
 			m_curNode = m_curNode.m_Childs.get(port);
 		}
 		else
 			throw new ChildNodeAlreadyExistsException(m_curNode, port);
 		
 		return this;
+	}
+
+	public ModuleTree AddJumpNode(String portName, String des) throws Exception
+	{
+		int portId = m_curNode.GetPortId(portName);
+		return AddJumpNode(portId, des);
 	}
 	
 	public ModuleTree AddJumpNode(int port, String des) throws ChildNodeAlreadyExistsException
@@ -108,7 +123,7 @@ public class ModuleTree {
 		return m_Root.Find(id);
 	}
 	
-	public void Execute(FlowEnv env, ArrayList<String> tracePath) throws ExecuteException
+	public void Execute(FlowEnv env, ArrayList<String> tracePath) throws Exception
 	{
 		GoToRoot().Execute(env, tracePath);
 	}

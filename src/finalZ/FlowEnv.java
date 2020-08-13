@@ -85,7 +85,7 @@ public class FlowEnv {
 		return tracePath;
 	}
 	
-	public ArrayList<String> ExecuteFlow(AFlow flow, int entryPort) throws ExecuteException
+	public ArrayList<String> ExecuteFlow(AFlow flow, int entryPort) throws Exception
 	{
 		ArrayList<String> tracePath = null;
 		try

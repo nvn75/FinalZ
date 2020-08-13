@@ -1,0 +1,52 @@
+main <- Network
+    [NEW_CONNECTION] <- DecodeMessage
+        [NEW_MESSAGE] <- CheckCRC
+            [PASSED] <- LoadUserData
+                [SUCCESS] <- flow UserHandler
+                [NOT_EXISTED] <- BannedUserHandler
+            [FAILED] jump error
+        [ERROR] jump error
+    [DISCONNECTED] x
+    [RECEIVE_MESSAGE] <- CheckCRC
+        [PASSED] <- flow UserHandler
+        [FAILED] jump error
+/*
+{
+    "main": {
+        "Network": {
+            "NEW_CONNECTION": {
+                "DecodeMessage": {
+                    "NEW_MESSAGE": {
+                        "CheckCRC": {
+                            "PASSED": {
+                                "LoadUserData": {
+                                    "ADMIN": "AdminHandler",
+                                    "GUEST": {},
+                                    "USER": "UserHandler",
+                                    "BANNED_USER": "BannedUserHandler"
+                                }
+                            },
+                            "FAILED": {
+                                "jump": "er"
+                            }
+                        }
+                    },
+                    "ERROR": {
+                        "jump": "er"
+                    }
+                }
+            },
+            "DISCONNECTED": {},
+            "RECEIVE_MESSAGE": {}
+        }
+    },
+
+    "error": {
+        "ResponseError": {"DONE":  {}}
+    },
+
+    "login": {
+
+    }
+
+}*/

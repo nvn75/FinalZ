@@ -9,22 +9,22 @@ import finalZ.Port;
 import finalZ.exceptions.ExecuteException;
 import finalZ.exceptions.OutputPortNotFoundException;
 import finalZ.exceptions.NodeIsMissingException;
-import finalZ.module.AModule;
-import finalZ.trace.TraceInfo;
+import finalZ.exceptions.PortNotExistsException;
+import finalZ.module.ModuleInfo;
 
 public class TreeNode {
 	
-	private AModule m_Module;
+	private ModuleInfo m_ModuleInfo;
 	
 	public TreeNode m_Parent;
 	public HashMap<Integer, TreeNode> m_Childs;
 	private String m_stId;
 	
-	public TreeNode(String id, AModule module, TreeNode parent)
+	public TreeNode(String id, ModuleInfo moduleInfo, TreeNode parent)
 	{
 		m_stId = id;
 		m_Parent = parent;
-		m_Module = module;
+		m_ModuleInfo = moduleInfo;
 		m_Childs = new HashMap<>();
 	}
 	
@@ -35,7 +35,11 @@ public class TreeNode {
 	
 	public Port GetPort(int port)
 	{
-		return m_Module.GetIF().GetPort(port);
+		return m_ModuleInfo.getIF().GetPort(port);
+	}
+
+	public int GetPortId(String portName) throws PortNotExistsException {
+		return m_ModuleInfo.getPortId(portName);
 	}
 	
 	public String GetName()
@@ -45,7 +49,7 @@ public class TreeNode {
 	
 	public String GetModuleName()
 	{
-		return m_Module.toString();
+		return m_ModuleInfo.toString();
 	}
 	
 	public TreeNode Find(String id)
@@ -58,20 +62,21 @@ public class TreeNode {
 		return null;
 	}
 	
-	public void Execute(FlowEnv env, ArrayList<String> tracePath) throws ExecuteException
+	public void Execute(FlowEnv env, ArrayList<String> tracePath) throws Exception
 	{
 		tracePath.add(GetId());
-		int portId = m_Module.Execute(env);
-		if (m_Module.GetIF() == null) 
+		String portName = m_ModuleInfo.Execute(env);
+		if (portName == null)
 		{
 			Log.Debug("Finish");
 			return;
 		}
-		Port port = m_Module.GetIF().GetPort(portId);
+		int portId = m_ModuleInfo.getPortId(portName);
+		Port port = m_ModuleInfo.getIF().GetPort(portId);
 		if (port == null) throw new OutputPortNotFoundException(this);
 		TreeNode nextNode = m_Childs.get(port.id);
 		if (nextNode == null) throw new NodeIsMissingException(this, port.id);
-		Log.Debug(GetModuleName() + "@[" + port.desc + "] Execute " + nextNode.GetModuleName());
+		Log.Debug("Execute " + GetModuleName() + " => [" + port.desc + "]" + nextNode.GetModuleName());
 		if (nextNode instanceof JumpNode)
 		{
 			
@@ -94,24 +99,25 @@ public class TreeNode {
 		for (int k = 0; k < temp.length(); k++)
 			s += " ";
 		space.add(s);
-		if (m_Module != null && m_Module.GetIF() != null)
+		if (m_ModuleInfo != null && m_ModuleInfo.getIF() != null)
 		{
-			for (int i = 0; i < m_Module.GetIF().GetPortNum(); i++)
-			{
-				Port port = m_Module.GetIF().GetPort(i);
-				boolean hasAnotherChild = isFullTree && i < m_Module.GetIF().GetPortNum() - 1;
-				for (int j = i + 1; j < m_Module.GetIF().GetPortNum(); j++)
-				{
-					Port p = m_Module.GetIF().GetPort(j);
-					if (m_Childs.containsKey(p.id))
-					{
-						hasAnotherChild = true;
+			if (m_Parent != null) {
+				boolean hasAnotherUncle = isFullTree && parentPort.id < m_Parent.m_ModuleInfo.getIF().GetPortNum() - 1;
+				for (int j = parentPort.id + 1; j < m_Parent.m_ModuleInfo.getIF().GetPortNum(); j++) {
+					Port p = m_Parent.m_ModuleInfo.getIF().GetPort(j);
+					if (m_Parent.m_Childs.containsKey(p.id)) {
+						hasAnotherUncle = true;
 						break;
 					}
 				}
-				if (hasAnotherChild)
-					indentFlag = (indentFlag) + (1 << level);
+				if (hasAnotherUncle)
+					indentFlag = (indentFlag) + (1 << (level - 1));
+			}
+			for (int i = 0; i < m_ModuleInfo.getIF().GetPortNum(); i++)
+			{
+				Port port = m_ModuleInfo.getIF().GetPort(i);
 				indent = Indent(indentFlag, level, space);
+
 				if (m_Childs.containsKey(port.id))
 				{
 					m_Childs.get(port.id).Print(str, port, level, isFullTree, indentFlag, space);
@@ -147,23 +153,23 @@ public class TreeNode {
 		for (int k = 0; k < temp.length(); k++)
 			s += " ";
 		space.add(s);
-		if (m_Module != null && m_Module.GetIF() != null)
+		if (m_ModuleInfo != null && m_ModuleInfo.getIF() != null)
 		{
-			for (int i = 0; i < m_Module.GetIF().GetPortNum(); i++)
-			{
-				Port port = m_Module.GetIF().GetPort(i);
-				boolean hasAnotherChild = isFullTree && i < m_Module.GetIF().GetPortNum() - 1;
-				for (int j = i + 1; j < m_Module.GetIF().GetPortNum(); j++)
-				{
-					Port p = m_Module.GetIF().GetPort(j);
-					if (m_Childs.containsKey(p.id))
-					{
-						hasAnotherChild = true;
+			if (m_Parent != null) {
+				boolean hasAnotherUncle = isFullTree && parentPort.id < m_Parent.m_ModuleInfo.getIF().GetPortNum() - 1;
+				for (int j = parentPort.id + 1; j < m_Parent.m_ModuleInfo.getIF().GetPortNum(); j++) {
+					Port p = m_Parent.m_ModuleInfo.getIF().GetPort(j);
+					if (m_Parent.m_Childs.containsKey(p.id)) {
+						hasAnotherUncle = true;
 						break;
 					}
 				}
-				if (hasAnotherChild)
-					indentFlag = (indentFlag) + (1 << level);
+				if (hasAnotherUncle)
+					indentFlag = (indentFlag) + (1 << (level - 1));
+			}
+			for (int i = 0; i < m_ModuleInfo.getIF().GetPortNum(); i++)
+			{
+				Port port = m_ModuleInfo.getIF().GetPort(i);
 				indent = Indent(indentFlag, level, space);
 				if (m_Childs.containsKey(port.id))
 				{

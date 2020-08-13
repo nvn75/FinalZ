@@ -2,31 +2,31 @@ package game.modules;
 
 import finalZ.FlowEnv;
 import finalZ.ModuleIF;
+import finalZ.annotation.Execute;
+import finalZ.annotation.Module;
 import finalZ.exceptions.ExecuteException;
 import finalZ.module.AModule;
 
-public class CheckCRC extends AModule {
+@Module({
+		"PASSED",
+		"FAILED"
+})
+public class CheckCRC {
 
 	public enum Port
 	{
-		PASSED,
 		FAILED,
-	}
-	
-	@Override
-	public ModuleIF BuildIF() {
-		// TODO Auto-generated method stub
-		return new ModuleIF(Port.class);
+		PASSED,
 	}
 
-	@Override
-	public int Execute(FlowEnv env) throws ExecuteException {
+	@Execute
+	public String Execute(FlowEnv env) throws ExecuteException {
 		// TODO Auto-generated method stub
 		byte crc = (byte)env.TakeOutVar("crc");
 		if (crc == 0) 
-			return Port.PASSED.ordinal();
+			return "PASSED";
 		else 
-			return Port.FAILED.ordinal();
+			return "FAILED";
 	}
 
 }

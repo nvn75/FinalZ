@@ -1,0 +1,25 @@
+{
+    "main": {
+        "Network": {
+            "isRoot": true,
+            "NEW_CONNECTION": "HandleNewConnection",
+            "DISCONNECTED": "CheckUserStatus",
+            "RECEIVE_MESSAGE": "DecodeMessage"
+        },
+        "DecodeMesssage": {
+            "SUCCESS": "CheckCRC",
+            "ERROR": "@error"
+        },
+        "CheckCRC": {
+            "PASSED": "#UserHandler",
+            "FAILED": "@error"
+        }
+    },
+
+    "error": {
+        "ResponseError": {
+            "DONE": null,
+            "FAILED": null
+        }
+    }
+}

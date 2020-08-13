@@ -2,7 +2,10 @@ package finalZ.tree;
 
 import java.util.ArrayList;
 
+import finalZ.FinalZ;
+import finalZ.exceptions.ModuleNotExistsException;
 import finalZ.module.AModule;
+import finalZ.module.ModuleInfo;
 
 public class ModuleForest {
 
@@ -25,11 +28,16 @@ public class ModuleForest {
 				return tree;
 		return null;
 	}
-	
-	public ModuleTree NewTree(String name, AModule module)
+
+	public ModuleTree NewTree(String name, String moduleName) throws Exception
+	{
+		return NewTree(name, FinalZ.Instance().getModuleInfo(moduleName));
+	}
+
+	public ModuleTree NewTree(String name, ModuleInfo moduleInfo)
 	{
 		int id = m_Trees.size() + 1;
-		ModuleTree newModuleTree = new ModuleTree(this, name, id, new TreeNode(id + ".1", module, null));
+		ModuleTree newModuleTree = new ModuleTree(this, name, id, new TreeNode(id + ".1", moduleInfo, null));
 		m_Trees.add(newModuleTree);
 		
 		return newModuleTree;

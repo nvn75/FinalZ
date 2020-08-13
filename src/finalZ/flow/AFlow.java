@@ -36,21 +36,21 @@ public abstract class AFlow {
 		return m_moduleForest.PrintTrace(tracePath);
 	}
 	
-	public ArrayList<String> Excecute(FlowEnv env, int treeId) throws ExecuteException
+	public ArrayList<String> Excecute(FlowEnv env, int treeId) throws Exception
 	{
 		ArrayList<String> tracePath = new ArrayList<>();
 		m_moduleForest.GetTree(treeId).Execute(env, tracePath);
 		return tracePath;
 	}
 	
-	public ArrayList<String> Excecute(FlowEnv env, String name) throws ExecuteException
+	public ArrayList<String> Excecute(FlowEnv env, String name) throws Exception
 	{
 		ArrayList<String> tracePath = new ArrayList<>();
 		m_moduleForest.GetTreeByName(name).Execute(env, tracePath);
 		return tracePath;
 	}
 	
-	public ArrayList<String> Excecute(FlowEnv env) throws ExecuteException
+	public ArrayList<String> Excecute(FlowEnv env) throws Exception
 	{
 		ModuleTree mainTree = m_moduleForest.GetTreeByName("main");
 		if (mainTree == null) return null;

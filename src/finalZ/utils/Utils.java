@@ -1,14 +1,25 @@
 package finalZ.utils;
 
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 public class Utils {
 	
-	public static String GenerateChildId(String parentId, int port, boolean isNew)
+	public static String GenerateNodeId(String path)
 	{
-		if (isNew) return parentId + ".1";
-		else
-		{
-			int id = Integer.parseInt(parentId.substring(parentId.lastIndexOf(".") + 1));
-			return parentId.substring(0, parentId.lastIndexOf(".") + 1) + (id + 1);
+		String sha1 = "";
+
+		// With the java libraries
+		try {
+			MessageDigest digest = MessageDigest.getInstance("SHA-1");
+			digest.reset();
+			digest.update(path.getBytes("utf8"));
+			sha1 = String.format("%040x", new BigInteger(1, digest.digest()));
+			return sha1;
+		} catch (Exception e){
+			e.printStackTrace();
+			return null;
 		}
 	}
 

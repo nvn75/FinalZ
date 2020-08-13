@@ -1,0 +1,30 @@
+{
+    "main": {
+        "HandleMessage": {
+            "isRoot": true,
+            "SIGN_IN": "SignIn",
+            "SIGN_OUT": "SignOut",
+            "PLAY_RANK": "RankMatching",
+            "Play_GOLD": "GoldMatching"
+        }
+    },
+
+    "SignIn": {
+        "LoadUserInfo": {
+            "isRoot": true,
+            "USER_NOT_EXISTED": "@error",
+            "SUCCESS": "ProcessAfterLogin",
+            "FAILED":"@error"
+        },
+        "ProcessAfterLogin": {
+            "DONE": "null"
+        }
+    },
+
+    "error": {
+        "ResponseError": {
+            "DONE": null,
+            "FAILED": null
+        }
+    }
+}

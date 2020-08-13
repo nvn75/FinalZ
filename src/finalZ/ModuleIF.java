@@ -14,6 +14,15 @@ public class ModuleIF {
 			m_lstPort.add(new Port(port.ordinal(), port.name()));
 		}
 	}
+
+	public ModuleIF(ArrayList<String> ports)
+	{
+		m_lstPort = new ArrayList<>();
+		for (int i = 0; i < ports.size(); i++)
+		{
+			m_lstPort.add(new Port(i, ports.get(i)));
+		}
+	}
 	
 	public ModuleIF()
 	{
