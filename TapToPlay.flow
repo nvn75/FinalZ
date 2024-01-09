@@ -10,6 +10,19 @@ main <- Network
     [RECEIVE_MESSAGE] <- CheckCRC
         [PASSED] <- flow UserHandler
         [FAILED] jump error
+
+main <- Network [NEW_CONNECTION] <- CheckCRC [PASSED] <- LoadUserData [EXISTED] <- flow UserHandler
+              |                            |                        |_ [NOT_EXISTED] <- BannedUserHandler
+              |                            |_ [FALED] jump error
+              |_ [DISCONNECTED] x
+              |_ [RECEIVE_MESSAGE] <- CheckCRC [PASSED] <- flow UserHandler
+                                             |_[FAILED] jump error
+
+main:   Network [NEW_CONNECTION]    <-CheckCRC  [PASSED]    <-LoadUserData  [EXISTED]   <-flow UserHandler
+                                                                            [NOT_EXISTED]   <-BannedUserHandler
+                                                [FAILED] jump error
+                [DISCONNECTED] x
+                [RECEIVE_MESSAGE]   <-CheckCRC  [PASSED]    <-
 /*
 {
     "main": {

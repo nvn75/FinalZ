@@ -1,9 +1,9 @@
 package game.modules;
 
-import finalZ.annotation.Execute;
-import finalZ.annotation.InstantiationPolicy;
-import finalZ.annotation.Module;
-import finalZ.annotation.Instantiate;
+        import finalZ.annotation.Execute;
+        import finalZ.annotation.InstantiationPolicy;
+        import finalZ.annotation.Module;
+        import finalZ.annotation.Instantiate;
 
 @Module({
         TestModule.DONE,
